@@ -29,7 +29,7 @@ wheels/
 
 # Data files
 data/raw/*.csv
-data/raw/*.parquet
+# data/raw/*.parquet
 data/processed/
 *.log
 
@@ -60,3 +60,16 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+
+# Jupyter checkpoints (en cualquier nivel)
+**/.ipynb_checkpoints/
+**/*-checkpoint.py
+
+# Jupyter Trash (en notebooks)
+**/.Trash-0/
+**/.Trash-0/**
+
+# General trash
+.Trash-0/
+
+notebooks/spark-warehouse/

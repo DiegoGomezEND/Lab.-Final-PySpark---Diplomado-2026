@@ -30,7 +30,7 @@ services:
       - spark-master
     environment:
       - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_MEMORY=4G
       - SPARK_NO_DAEMONIZE=true
     volumes:
       - ./data:/opt/spark-data
@@ -57,7 +57,7 @@ services:
     command: >
       bash -c "jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
       --allow-root --NotebookApp.token='spark'
-      --NotebookApp.password=''
+      --NotebookApp.password=diplomado2026
       --notebook-dir=/opt/spark-notebooks"
     volumes:
       - ./data:/opt/spark-data
