@@ -153,5 +153,87 @@ Se realizó un análisis de varianza sobre el vector `features_raw` para identif
 - Este comportamiento justifica la necesidad de aplicar **normalización y reducción de dimensionalidad (PCA)** en la siguiente fase.
 
 
+## Transformaciones Avanzadas (Notebook 04)
+
+En esta fase se aplicaron transformaciones avanzadas sobre el dataset previamente procesado mediante Feature Engineering, con el objetivo de **mejorar la calidad de las variables de entrada**, **reducir problemas derivados de escalas heterogéneas** y **disminuir la dimensionalidad del espacio de features** antes de entrenar modelos de Machine Learning.
+
+El punto de partida fue el dataset `secop_features.parquet`, el cual contiene un vector de características (`features_raw`) de 62 dimensiones, compuesto por variables numéricas y categóricas codificadas.
+
+---
+
+**¿Por qué normalizar?**
+
+Al inspeccionar los primeros registros del vector `features_raw`, se evidenció una **alta disparidad en las escalas de las variables**. Por ejemplo, el primer valor del vector corresponde al valor del contrato y presenta magnitudes del orden de millones, mientras que las variables categóricas codificadas toman valores binarios (0 o 1).
+
+Ejemplo de valores observados en `features_raw`: [4.5588e+06, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0]
+
+Esta diferencia de escalas representa un problema para algoritmos de Machine Learning, ya que las variables con valores grandes dominan el proceso de aprendizaje, afectando negativamente la convergencia y la interpretación del modelo.
+
+**Comparación antes y después de StandardScaler**
+
+Para solucionar el problema de escalas, se aplicó `StandardScaler` sobre el vector `features_raw`, generando un nuevo vector normalizado denominado `features_scaled`.
+
+**Estadísticas comparativas:**
+
+**Antes (features_raw):**
+- Min: 0.00  
+- Max: 75,952,011,382.00  
+- Media: 4,756,215.14  
+- Desviación estándar: 368,580,743.71  
+
+**Después (features_scaled):**
+- Min: 0.00  
+- Max: 69.01  
+- Media: 0.18  
+- Desviación estándar: 1.12  
+
+Estos resultados confirman que el escalado fue exitoso, logrando que todas las variables queden en una escala comparable, condición fundamental para aplicar técnicas como PCA y modelos basados en distancia.
+
+**Configuración de PCA y selección del número de componentes**
+
+Una vez normalizadas las variables, se aplicó **Análisis de Componentes Principales (PCA)** con el objetivo de reducir la dimensionalidad del vector de features.
+
+- Dimensión original del vector: **62**
+- Número de componentes seleccionados (k): **30**
+
+El valor de *k* fue ajustado progresivamente para analizar la varianza explicada y encontrar un balance entre reducción dimensional y conservación de información.
+
+Ejemplo del vector transformado (`features_pca`): DenseVector([0.4892, -1.1825, 1.2005, 1.7628, 0.3237, -0.0634, ...])
+
+**Análisis de varianza explicada**
+
+El análisis de varianza explicó cómo cada componente principal contribuye a la información total del dataset.
+
+Resultados acumulados con **k = 30** componentes:
+
+- Componente 10: 22.27% de varianza acumulada
+- Componente 20: 39.22% de varianza acumulada
+- Componente 30: **55.67% de varianza acumulada**
+
+Este comportamiento evidencia que la varianza está distribuida de forma relativamente homogénea entre las componentes, lo cual es consistente con datasets que incluyen una alta proporción de variables categóricas codificadas.
+
+Aunque no se alcanza el 80% de varianza explicada, el uso de 30 componentes permite una **reducción del 51.6% de la dimensionalidad**, manteniendo una cantidad significativa de información relevante.
+
+**Pipeline completo de transformaciones**
+
+Finalmente, se integraron todas las transformaciones en un **Pipeline completo**, garantizando reproducibilidad, trazabilidad y correcta aplicación del flujo de datos.
+
+Orden de las transformaciones:
+1. StandardScaler  
+2. PCA  
+
+Este orden es crítico, ya que PCA requiere que las variables estén previamente normalizadas para evitar sesgos en la identificación de componentes principales.
+
+Como resultado, se generó un dataset final listo para modelado (`secop_ml_ready.parquet`), compuesto por:
+- `features_pca`: vector reducido de características
+- `label`: valor del contrato (`valor_del_contrato_num`)
+
+Adicionalmente, el pipeline entrenado fue persistido para su reutilización en fases posteriores del proyecto, asegurando consistencia entre entrenamiento e inferencia.
+
+
+
+
+
+
 
 
