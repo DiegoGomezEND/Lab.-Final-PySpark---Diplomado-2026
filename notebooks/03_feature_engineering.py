@@ -1,5 +1,5 @@
 # %% [markdown]
-# # Notebook 03: Feature Engineering con Pipelines
+## Notebook 03: Feature Engineering con Pipelines
 #
 # **Sección 13 - Spark ML**: Construcción de pipelines end-to-end
 #
