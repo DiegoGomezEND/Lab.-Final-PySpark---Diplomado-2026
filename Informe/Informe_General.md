@@ -231,6 +231,124 @@ Como resultado, se generó un dataset final listo para modelado (`secop_ml_ready
 Adicionalmente, el pipeline entrenado fue persistido para su reutilización en fases posteriores del proyecto, asegurando consistencia entre entrenamiento e inferencia.
 
 
+## **Modelos de Regresión** 
+
+### **Regresión Lineal**
+
+Se construyo un modelo de **Regresión Lineal en Spark ML** con el objetivo de predecir el **valor del contrato** a partir de las *features* construidas en las fases anteriores (Feature Engineering + PCA). El dataset utilizado corresponde al archivo `secop_ml_ready.parquet`, el cual contiene las variables transformadas y listas para modelado.
+
+**Estrategia de Train/Test Split**
+
+Se definió una estrategia de partición **70% entrenamiento / 30% prueba**, utilizando una semilla fija para garantizar reproducibilidad.
+
+**Resultados del split:**
+- Train: **70,122 registros (70%)**
+- Test: **29,878 registros (30%)**
+
+Esta proporción es adecuada para datasets grandes (100,000 registros), permitiendo un entrenamiento robusto sin sacrificar capacidad de evaluación.
+
+**Configuración del Modelo de Regresión Lineal**
+
+Se configuró un modelo base de `LinearRegression` sin regularización, con los siguientes parámetros:
+
+- `featuresCol`: `features`
+- `labelCol`: `label`
+- `maxIter`: 100
+- `regParam`: 0.0
+- `elasticNetParam`: 0.0
+
+Este modelo sirve como **baseline**, permitiendo evaluar el comportamiento inicial antes de aplicar regularización en fases posteriores.
+
+**Interpretación del R² del Modelo (Train)**
+
+El modelo fue entrenado sobre el conjunto de entrenamiento, obteniendo:
+
+**Métricas en Train:**
+- **R² (train): 0.5648**
+- **RMSE (train): $3,074,544,375**
+ 
+El valor de R² indica que el modelo explica aproximadamente **56.5% de la variabilidad** del valor de los contratos en el conjunto de entrenamiento. Dado el alto nivel de heterogeneidad y presencia de outliers en los valores contractuales, este resultado es razonable para un modelo lineal base.
+
+**Análisis de Calidad de Predicciones y Errores**
+
+Se analizaron las predicciones sobre el conjunto de prueba, calculando:
+
+- Error absoluto
+- Error porcentual
+- Identificación de las peores predicciones
+
+**Hallazgos clave:**
+1. Se observaron errores absolutos elevados en contratos de valores muy altos.
+2. Los errores porcentuales superan el 100% en contratos pequeños, lo cual evidencia:
+  - Alta dispersión en los valores
+  - Dificultad del modelo lineal para capturar extremos
+3. No se detectaron errores sistemáticos por duplicación o fallas de cálculo.
+
+Estos resultados son coherentes con la naturaleza altamente asimétrica del valor de los contratos.
+
+**Comparación Train vs Test (Overfitting)**
+
+Se evaluó el modelo sobre el conjunto de prueba:
+
+**Métricas en Test:**
+- RMSE: **$3,048,622,156**
+- MAE: **$587,881,077**
+- R² (test): **0.5742**
+
+**Comparación Train vs Test:**
+- R² Train: **0.5648**
+- R² Test: **0.5742**
+- Diferencia absoluta: **0.0095**
+ 
+No se evidencia **overfitting**, ya que el desempeño en test es incluso ligeramente superior al de train.  
+El modelo generaliza correctamente dentro de las limitaciones propias de la regresión lineal.
+
+**Análisis de Coeficientes del Modelo**
+
+- Intercepto: **$289,073,028**
+- Número de coeficientes: **30** (correspondientes a los componentes PCA)
+
+El intercepto representa el valor base estimado cuando todas las *features* son cero. Los coeficientes reflejan la contribución relativa de cada componente principal (PCA), no de variables originales, por lo que su interpretación es **indirecta**.
+
+**Análisis de Distribución de Residuos**
+
+Se calculó el residuo como:
+
+\[
+residuo = label - prediction
+\]
+
+Se generó un histograma para evaluar su distribución.
+
+**Resultado visual:**
+
+![Distribución de Residuos](Imagenes/imagen2.png)
+
+**Interpretación:**
+- Los residuos están centrados alrededor de cero.
+- Existe alta concentración cerca del origen, con colas largas, lo cual es consistente con:
+  - Presencia de outliers
+  - Variabilidad extrema en los valores contractuales
+- No se observa sesgo sistemático severo.
+
+**Feature Importance Aproximado (Componentes PCA)**
+
+Se analizaron los coeficientes del modelo para identificar los componentes PCA más influyentes (por valor absoluto):
+
+**Top 10 componentes más importantes:**
+1. PC8      
+2. PC9  
+3. PC7  
+4. PC3  
+5. PC10  
+6. PC1  
+7. PC6  
+8. PC4  
+9. PC26  
+10. PC16  
+
+Estos componentes concentran mayor información relevante para la predicción. Al tratarse de PCA, no se interpretan directamente como variables originales, sino como combinaciones lineales de ellas, y el resultado confirma que solo una fracción de los componentes tiene impacto significativo.
+
 
 
 
