@@ -233,7 +233,7 @@ Adicionalmente, el pipeline entrenado fue persistido para su reutilización en f
 
 ## **Modelos de Regresión** 
 
-### **Regresión Lineal**
+## **Regresión Lineal**
 
 Se construyo un modelo de **Regresión Lineal en Spark ML** con el objetivo de predecir el **valor del contrato** a partir de las *features* construidas en las fases anteriores (Feature Engineering + PCA). El dataset utilizado corresponde al archivo `secop_ml_ready.parquet`, el cual contiene las variables transformadas y listas para modelado.
 
@@ -350,6 +350,100 @@ Se analizaron los coeficientes del modelo para identificar los componentes PCA m
 Estos componentes concentran mayor información relevante para la predicción. Al tratarse de PCA, no se interpretan directamente como variables originales, sino como combinaciones lineales de ellas, y el resultado confirma que solo una fracción de los componentes tiene impacto significativo.
 
 
+## **Regresión Logística para Clasificación de Riesgo Contractual**
+
+En esta fase se construyó un modelo de regresión logística con el objetivo de clasificar los contratos del SECOP II según su nivel de riesgo, a partir de las variables transformadas en las etapas previas del pipeline. A diferencia de la regresión lineal, este modelo aborda un problema de clasificación binaria, donde el interés principal es estimar la probabilidad de que un contrato sea considerado de alto riesgo.
+
+El dataset utilizado corresponde a `secop_features.parquet`, el cual contiene 100.000 contratos con variables categóricas codificadas y variables numéricas listas para modelado.
+
+Query: **06_regresion_logistica.py**
+
+**Creación de la variable objetivo binaria**
+
+Dado que el dataset original no cuenta con una variable explícita de riesgo, fue necesario construir una variable objetivo binaria denominada `riesgo`. Para ello se definió un criterio combinado que contempla tanto el riesgo financiero como el riesgo operativo por el tiempo.
+
+Se establecieron las siguientes reglas:
+
+- Riesgo financiero: contratos cuyo valor supera el percentil 90 del valor del contrato.
+- Riesgo operativo: contratos con duración definida menor a 30 días.
+
+La regla financiera se aplicó a todos los contratos, mientras que la regla operativa solo se utilizó cuando la duración del contrato estaba disponible. Los contratos con duración no definida fueron clasificados únicamente con base en el criterio financiero, evitando su exclusión del análisis.
+
+Como resultado, se obtuvo la siguiente distribución:
+
+- Contratos de alto riesgo (1): **30.717**
+- Contratos de bajo riesgo (0): **69.283**
+- Total de registros: **100.000**
+
+Este procedimiento permitió construir una variable objetivo consistente, sin pérdida de información y alineada con criterios reales de riesgo contractual.
+
+**Análisis del balance de clases**
+
+Se analizó la distribución de la variable `riesgo` para evaluar el balance de clases. Los resultados muestran que aproximadamente el 30% de los contratos corresponden a la clase positiva (alto riesgo) y el 70% a la clase negativa (bajo riesgo).
+
+Aunque el dataset no está perfectamente balanceado, el desbalance no es extremo, lo que permite entrenar un modelo base sin necesidad inmediata de técnicas de remuestreo. No obstante, este escenario justifica el uso de métricas adicionales a la accuracy y el posterior ajuste del threshold de clasificación.
+
+**Diferencia entre regresión logística y regresión lineal**
+
+La regresión logística se diferencia de la regresión lineal en que no predice valores continuos, sino probabilidades asociadas a una clase. Utiliza una función sigmoide para transformar la combinación lineal de las variables de entrada en un valor entre 0 y 1, el cual se interpreta como la probabilidad de pertenecer a la clase positiva.
+
+En este proyecto, la regresión lineal se utilizó para predecir el valor del contrato, mientras que la regresión logística se empleó para clasificar contratos según su nivel de riesgo, evidenciando la aplicabilidad de cada modelo según la naturaleza del problema.
+
+**Configuración del modelo**
+
+El modelo de regresión logística se configuró con los siguientes parámetros:
+
+- `maxIter = 100`
+- `regParam = 0.0`
+- `threshold = 0.5`
+
+Esta configuración corresponde a un modelo base sin regularización, utilizado como punto de referencia antes de introducir penalizaciones y ajustes más avanzados. El threshold de 0.5 se utilizó inicialmente como valor estándar, siendo posteriormente analizado y ajustado en los retos bonus.
+
+**Interpretación de probabilidades**
+
+La columna `probability` generada por el modelo representa la probabilidad estimada de pertenecer a cada clase, donde el segundo valor corresponde a la probabilidad de alto riesgo. Por ejemplo, un valor `probability = [0.8, 0.2]` indica una probabilidad del 20% de que el contrato sea de alto riesgo, por lo que, con un threshold de 0.5, sería clasificado como bajo riesgo.
+
+El análisis de las predicciones evidenció la existencia de casos cercanos al threshold, los cuales representan situaciones de mayor incertidumbre y refuerzan la importancia de evaluar métricas adicionales y ajustar el criterio de decisión.
+
+**Evaluación del modelo con múltiples métricas**
+
+Para evaluar el desempeño del modelo se utilizaron métricas apropiadas para clasificación binaria:
+
+- **AUC-ROC:** **0.8137**
+- **Accuracy:** **0.8183**
+- **Precision:** **0.8222**
+- **Recall:** **0.8183**
+- **F1-Score:** **0.8031**
+
+El valor de AUC-ROC indica una buena capacidad del modelo para discriminar entre contratos de alto y bajo riesgo, independientemente del threshold utilizado. Las métricas de precision y recall muestran un desempeño balanceado, lo que sugiere que el modelo logra identificar contratos riesgosos sin generar un número excesivo de falsas alarmas.
+
+**Matriz de confusión**
+
+Se construyó la matriz de confusión sobre el conjunto de prueba, obteniendo los siguientes resultados:
+
+- True Positives (TP): **4.696**
+- True Negatives (TN): **19.713**
+- False Positives (FP): **867**
+- False Negatives (FN): **4.554**
+
+El análisis muestra que el error más crítico corresponde a los falsos negativos, ya que implican contratos de alto riesgo clasificados como bajo riesgo. En el contexto de la contratación pública, este tipo de error es más costoso que un falso positivo, lo cual justifica priorizar métricas como el recall y el ajuste del threshold.
+
+**Ajuste del threshold de clasificación**
+
+Se evaluó el desempeño del modelo utilizando diferentes valores de threshold. Al aumentar el threshold a 0.7, se obtuvo:
+
+- Accuracy: **0.806**
+- Recall: **0.806**
+
+Este resultado confirma el trade-off entre precisión y sensibilidad. Un threshold más alto hace al modelo más conservador, reduciendo la detección de contratos riesgosos. Dado el objetivo del análisis, se concluye que no es conveniente utilizar un threshold elevado y que valores cercanos o inferiores a 0.5 son más adecuados para priorizar la detección de riesgo.
+
+**Curva ROC**
+
+Se construyó la curva ROC para visualizar el trade-off entre la tasa de verdaderos positivos (TPR) y la tasa de falsos positivos (FPR) a lo largo de distintos thresholds. La curva se encuentra claramente por encima de la línea de clasificación aleatoria, confirmando la capacidad discriminatoria del modelo.
+
+![Curva ROC - Regresión Logística](Imagenes/imagen3.png)
+
+El valor de AUC cercano a 0.81 respalda los resultados obtenidos en la evaluación cuantitativa y valida el uso de la regresión logística como modelo base para la clasificación de riesgo contractual.
 
 
 
