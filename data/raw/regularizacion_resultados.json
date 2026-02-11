@@ -1,0 +1,146 @@
+[
+  {
+    "regParam": 0.0,
+    "elasticNetParam": 0.0,
+    "tipo": "Sin regularizaci\u00f3n",
+    "rmse_test": 3745098056.020906,
+    "rmse_train": 2797195710.16795,
+    "r2_train": 0.5231202180629513
+  },
+  {
+    "regParam": 0.0,
+    "elasticNetParam": 0.5,
+    "tipo": "Sin regularizaci\u00f3n",
+    "rmse_test": 3745098056.020906,
+    "rmse_train": 2797195710.16795,
+    "r2_train": 0.5231202180629514
+  },
+  {
+    "regParam": 0.0,
+    "elasticNetParam": 1.0,
+    "tipo": "Sin regularizaci\u00f3n",
+    "rmse_test": 3745098056.020906,
+    "rmse_train": 2797195710.16795,
+    "r2_train": 0.5231202180629513
+  },
+  {
+    "regParam": 1.0,
+    "elasticNetParam": 0.0,
+    "tipo": "Ridge (L2)",
+    "rmse_test": 3745098056.374397,
+    "rmse_train": 2797195710.167952,
+    "r2_train": 0.5231202180629507
+  },
+  {
+    "regParam": 1.0,
+    "elasticNetParam": 0.5,
+    "tipo": "ElasticNet",
+    "rmse_test": 3745098056.930339,
+    "rmse_train": 2797195710.167955,
+    "r2_train": 0.5231202180629497
+  },
+  {
+    "regParam": 1.0,
+    "elasticNetParam": 1.0,
+    "tipo": "Lasso (L1)",
+    "rmse_test": 3745098057.4862814,
+    "rmse_train": 2797195710.167951,
+    "r2_train": 0.5231202180629511
+  },
+  {
+    "regParam": 10.0,
+    "elasticNetParam": 0.0,
+    "tipo": "Ridge (L2)",
+    "rmse_test": 3745098059.5558305,
+    "rmse_train": 2797195710.167954,
+    "r2_train": 0.5231202180629502
+  },
+  {
+    "regParam": 10.0,
+    "elasticNetParam": 0.5,
+    "tipo": "ElasticNet",
+    "rmse_test": 3745098065.114737,
+    "rmse_train": 2797195710.167952,
+    "r2_train": 0.5231202180629507
+  },
+  {
+    "regParam": 10.0,
+    "elasticNetParam": 1.0,
+    "tipo": "Lasso (L1)",
+    "rmse_test": 3745098070.674167,
+    "rmse_train": 2797195710.167952,
+    "r2_train": 0.5231202180629508
+  },
+  {
+    "regParam": 100.0,
+    "elasticNetParam": 0.0,
+    "tipo": "Ridge (L2)",
+    "rmse_test": 3745098091.370158,
+    "rmse_train": 2797195710.1679535,
+    "r2_train": 0.5231202180629502
+  },
+  {
+    "regParam": 100.0,
+    "elasticNetParam": 0.5,
+    "tipo": "ElasticNet",
+    "rmse_test": 3745098146.9785047,
+    "rmse_train": 2797195710.167967,
+    "r2_train": 0.5231202180629456
+  },
+  {
+    "regParam": 100.0,
+    "elasticNetParam": 1.0,
+    "tipo": "Lasso (L1)",
+    "rmse_test": 3745098202.15948,
+    "rmse_train": 2797195710.16801,
+    "r2_train": 0.5231202180629309
+  },
+  {
+    "regParam": 1000.0,
+    "elasticNetParam": 0.0,
+    "tipo": "Ridge (L2)",
+    "rmse_test": 3745098409.513421,
+    "rmse_train": 2797195710.1680493,
+    "r2_train": 0.5231202180629175
+  },
+  {
+    "regParam": 1000.0,
+    "elasticNetParam": 0.5,
+    "tipo": "ElasticNet",
+    "rmse_test": 3745098965.0581903,
+    "rmse_train": 2797195710.1695805,
+    "r2_train": 0.5231202180623955
+  },
+  {
+    "regParam": 1000.0,
+    "elasticNetParam": 1.0,
+    "tipo": "Lasso (L1)",
+    "rmse_test": 3745099521.004204,
+    "rmse_train": 2797195710.173457,
+    "r2_train": 0.5231202180610737
+  },
+  {
+    "regParam": 10000.0,
+    "elasticNetParam": 0.0,
+    "tipo": "Ridge (L2)",
+    "rmse_test": 3745101590.944237,
+    "rmse_train": 2797195710.1779547,
+    "r2_train": 0.5231202180595402
+  },
+  {
+    "regParam": 10000.0,
+    "elasticNetParam": 0.5,
+    "tipo": "ElasticNet",
+    "rmse_test": 3745107150.424924,
+    "rmse_train": 2797195710.32901,
+    "r2_train": 0.5231202180080348
+  },
+  {
+    "regParam": 10000.0,
+    "elasticNetParam": 1.0,
+    "tipo": "Lasso (L1)",
+    "rmse_test": 3745112712.2605057,
+    "rmse_train": 2797195710.7170224,
+    "r2_train": 0.5231202178757343
+  }
+]

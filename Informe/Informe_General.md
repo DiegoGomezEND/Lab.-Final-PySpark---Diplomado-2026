@@ -132,7 +132,7 @@ El pipeline se construyó respetando el orden lógico de las transformaciones:
 
 El pipeline fue entrenado y aplicado exitosamente sobre el dataset limpio, garantizando reproducibilidad y consistencia en futuras ejecuciones.
 
-### Análisis de varianza de features (Bonus)
+### Análisis de varianza de features
 
 Se realizó un análisis de varianza sobre el vector `features_raw` para identificar las dimensiones con mayor capacidad de diferenciación.
 
@@ -153,7 +153,7 @@ Se realizó un análisis de varianza sobre el vector `features_raw` para identif
 - Este comportamiento justifica la necesidad de aplicar **normalización y reducción de dimensionalidad (PCA)** en la siguiente fase.
 
 
-## Transformaciones Avanzadas (Notebook 04)
+## Transformaciones Avanzadas 
 
 En esta fase se aplicaron transformaciones avanzadas sobre el dataset previamente procesado mediante Feature Engineering, con el objetivo de **mejorar la calidad de las variables de entrada**, **reducir problemas derivados de escalas heterogéneas** y **disminuir la dimensionalidad del espacio de features** antes de entrenar modelos de Machine Learning.
 
@@ -278,6 +278,7 @@ Se analizaron las predicciones sobre el conjunto de prueba, calculando:
 - Identificación de las peores predicciones
 
 **Hallazgos clave:**
+
 1. Se observaron errores absolutos elevados en contratos de valores muy altos.
 2. Los errores porcentuales superan el 100% en contratos pequeños, lo cual evidencia:
   - Alta dispersión en los valores
@@ -322,7 +323,7 @@ Se generó un histograma para evaluar su distribución.
 
 **Resultado visual:**
 
-![Distribución de Residuos](Imagenes/imagen2.png)
+![Distribución de Residuos](../Imagenes/imagen2.png)
 
 **Interpretación:**
 - Los residuos están centrados alrededor de cero.
@@ -441,9 +442,145 @@ Este resultado confirma el trade-off entre precisión y sensibilidad. Un thresho
 
 Se construyó la curva ROC para visualizar el trade-off entre la tasa de verdaderos positivos (TPR) y la tasa de falsos positivos (FPR) a lo largo de distintos thresholds. La curva se encuentra claramente por encima de la línea de clasificación aleatoria, confirmando la capacidad discriminatoria del modelo.
 
-![Curva ROC - Regresión Logística](Imagenes/imagen3.png)
+![Curva ROC - Regresión Logística](../Imagenes/imagen3.png)
 
 El valor de AUC cercano a 0.81 respalda los resultados obtenidos en la evaluación cuantitativa y valida el uso de la regresión logística como modelo base para la clasificación de riesgo contractual.
+
+## **Regularización L1, L2 y ElasticNet**
+
+En esta fase se evaluó el impacto de la regularización sobre el modelo de regresión lineal construido previamente con componentes principales (PCA). El objetivo fue analizar si la penalización L1, L2 o ElasticNet permitía reducir el overfitting observado y mejorar la capacidad de generalización del modelo.
+
+Dataset utilizado: `secop_ml_ready.parquet`  
+Split aplicado: 70% entrenamiento – 30% prueba  
+Semilla: 42  
+
+**Comprender la Regularización**
+
+Escenario conceptual:
+
+- R² train = 0.95  
+- R² test = 0.45  
+
+Este escenario indica **overfitting**. El modelo aprende demasiado bien los datos de entrenamiento pero no generaliza correctamente a datos nuevos.
+
+La regularización introduce una penalización sobre los coeficientes del modelo, reduciendo su magnitud y limitando la complejidad. Esto ayuda a evitar que el modelo memorice ruido.
+
+**Configuración del Evaluador**
+
+Se configuró un evaluador basado en RMSE:
+
+- Penaliza fuertemente errores grandes.
+- Mantiene interpretabilidad en unidades monetarias.
+- Es consistente con el análisis previo realizado en regresión lineal.
+
+Métrica utilizada: `rmse`  
+
+**Experimento con Múltiples Regularizaciones**
+
+Se entrenaron 18 modelos variando:
+
+**regParam (λ):**
+
+- 0.0  
+- 1.0  
+- 10.0  
+- 100.0  
+- 1000.0  
+- 10000.0  
+
+**elasticNetParam (α):**
+
+- 0.0 → Ridge  
+- 0.5 → ElasticNet  
+- 1.0 → Lasso  
+
+Total modelos entrenados: 18  
+
+**Resultados del Experimento**
+
+**Modelo sin regularización:**
+
+- RMSE Train: $2,797,195,710.17  
+- RMSE Test:  $3,745,098,056.02  
+
+**Ridge (λ = 1):**
+
+- RMSE Test: $3,745,098,056.37  
+
+**ElasticNet (λ = 1):**
+
+- RMSE Test: $3,745,098,056.93  
+
+**Lasso (λ = 1):**
+
+- RMSE Test: $3,745,098,057.49  
+
+A medida que λ aumenta, el RMSE Test aumenta ligeramente, indicando pérdida progresiva de capacidad predictiva (underfitting). El menor RMSE se obtuvo con λ = 0.0. La regularización no mejoró el desempeño del modelo en este caso.
+
+**Comparación de Overfitting**
+
+Brecha aproximada:
+
+Gap = RMSE_Test − RMSE_Train
+Gap ≈ 947,902,345.85
+
+La brecha se mantiene prácticamente constante en todas las configuraciones.
+
+Interpretación:
+
+- No se observa reducción significativa del overfitting mediante regularización.
+- El modelo basado en PCA ya presenta estabilidad estructural.
+- Incrementar λ solo aumenta el error sin reducir la brecha train-test.
+
+**Modelo Final**
+
+Se seleccionó como mejor modelo:
+
+- regParam = 0.0  
+- elasticNetParam = 0.0  
+
+Resultados finales:
+
+- RMSE Train: $2,797,195,710.17  
+- RMSE Test:  $3,745,098,056.02  
+
+Modelo guardado en: /opt/spark-data/raw/regularized_model
+
+**Efecto de λ en Lasso**
+
+Se evaluó cómo cambia el número de coeficientes en cero al aumentar λ en Lasso (L1).
+
+Resultados:
+
+- λ = 0.01 → 0/30 coeficientes en 0  
+- λ = 0.10 → 0/30 coeficientes en 0  
+- λ = 1.00 → 0/30 coeficientes en 0  
+- λ = 10.00 → 0/30 coeficientes en 0  
+- λ = 100.00 → 0/30 coeficientes en 0  
+- λ = 1000.00 → 0/30 coeficientes en 0  
+
+No se eliminó ningún coeficiente. Esto ocurre porque el modelo trabaja sobre componentes PCA, que son combinaciones lineales densas y ortogonales. Lasso tiende a generar sparsity cuando existen features originales altamente redundantes o poco relevantes, lo cual no sucede en este espacio reducido de 30 componentes principales.
+
+#### Visualización del efecto de λ
+
+Efecto de λ en la sparsity (Lasso):
+
+![Efecto de λ en la Sparsity](../Imagenes/imagen4.png)
+
+
+Efecto de λ en el error del modelo:
+
+![Efecto de λ en el Error](../Imagenes/imagen5.png)
+
+
+Las gráficas muestran que:
+
+- El número de coeficientes en cero permanece constante.
+- El RMSE aumenta progresivamente al incrementar λ.
+- Valores altos de λ inducen underfitting.
+
+La regularización no mejoró el desempeño del modelo en este dataset. Dado el uso previo de PCA en el cual se estabiliza el modelo reduciendo colinealidad. Asi mismo Lasso no generó sparsity debido a la naturaleza de los componentes principales. Por lo cual, valores altos de λ aumentarian el error de predicción y en este caso específico, el modelo sin regularización resultó óptimo.
+
 
 
 
