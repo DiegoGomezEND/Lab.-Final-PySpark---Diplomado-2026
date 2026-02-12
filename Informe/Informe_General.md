@@ -581,6 +581,19 @@ Las gráficas muestran que:
 
 La regularización no mejoró el desempeño del modelo en este dataset. Dado el uso previo de PCA en el cual se estabiliza el modelo reduciendo colinealidad. Asi mismo Lasso no generó sparsity debido a la naturaleza de los componentes principales. Por lo cual, valores altos de λ aumentarian el error de predicción y en este caso específico, el modelo sin regularización resultó óptimo.
 
+## **Optimizacion de Hiperparametros**
+
+### **Validacion Cruzada**
+
+La **Validación Cruzada (K-Fold Cross-Validation)** con el objetivo de obtener una estimación más robusta del desempeño del modelo de regresión. A diferencia del simple train/test split, la validación cruzada divide el conjunto de entrenamiento en *K subconjuntos*, entrenando el modelo múltiples veces y rotando el conjunto de validación en cada iteración. Esto permite reducir la varianza de la métrica y minimizar el riesgo de seleccionar un modelo que funcione bien solo por una partición favorable de los datos.
+
+Se construyó un **ParamGrid** que incluyó múltiples combinaciones de hiperparámetros (`regParam`, `elasticNetParam`, `maxIter`, `fitIntercept`), generando un total de **36 combinaciones**. Con un valor de **K=5 folds**, el sistema entrenó **180 modelos en total**, evaluando cada uno mediante la métrica **RMSE**. El mejor modelo encontrado presentó los hiperparámetros `regParam = 1.0` y `elasticNetParam = 0.5` (ElasticNet), con un **RMSE promedio en Cross-Validation de 3,333,757,188.27**.
+
+Posteriormente, el mejor modelo fue evaluado sobre el conjunto de prueba independiente, obteniendo un **RMSE en test de $2,342,402,953.62**, lo cual confirma un buen nivel de generalización. Se realizó además una comparación entre el modelo obtenido mediante Cross-Validation y uno entrenado únicamente con simple split, observándose resultados idénticos en este caso específico, debido a la estabilidad del dataset y a la consistencia de los hiperparámetros seleccionados.
+
+Por otro lado se realizo un experimento adicional variando el número de folds (K=3, K=5 y K=10), observando que un mayor número de folds reduce ligeramente el RMSE promedio pero incrementa considerablemente el tiempo computacional (23.5s, 36.1s y 71.1s respectivamente). Esto evidencia el trade-off clásico entre robustez estadística y costo computacional. El modelo óptimo fue guardado para su uso en fases posteriores de optimización avanzada y despliegue.
+
+
 
 
 
