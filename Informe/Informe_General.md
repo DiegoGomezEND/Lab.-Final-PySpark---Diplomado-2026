@@ -32,7 +32,7 @@ Posteriormente se calcularon **estadísticas descriptivas generales** y específ
 
 En el análisis territorial se observó una fuerte concentración de contratos en grandes centros administrativos como Bogotá, Antioquia y Valle del Cauca, tanto en número de contratos como en valor total adjudicado. Este comportamiento refleja la centralización de la contratación pública y justifica el uso de análisis regionales más detallados en fases posteriores.
 
-![Distribución de contratos por departamento](../Imagenes/Imagen1.png)
+![Distribución de contratos por departamento](../Imagenes/imagen1.png)
 
 Tambien se exploró la distribución por **tipo de contrato**, donde la modalidad de **Prestación de Servicios** domina ampliamente el volumen de contratos, seguida por modalidades administrativas específicas y contratos de compra y suministro. En cuanto al **estado del contrato**, la mayoría se encuentran en ejecución o han sufrido modificaciones, lo cual es consistente con procesos contractuales activos y dinámicos.
 
@@ -593,6 +593,15 @@ Posteriormente, el mejor modelo fue evaluado sobre el conjunto de prueba indepen
 
 Por otro lado se realizo un experimento adicional variando el número de folds (K=3, K=5 y K=10), observando que un mayor número de folds reduce ligeramente el RMSE promedio pero incrementa considerablemente el tiempo computacional (23.5s, 36.1s y 71.1s respectivamente). Esto evidencia el trade-off clásico entre robustez estadística y costo computacional. El modelo óptimo fue guardado para su uso en fases posteriores de optimización avanzada y despliegue.
 
+## **Optimizacion de Hiperparametros**
+
+Se implementaron estrategias de optimización de hiperparámetros sobre el modelo de Regresión Lineal con regularización, utilizando los datos transformados del archivo `secop_ml_ready.parquet`. Se diseñó un grid de búsqueda en escala logarítmica para `regParam` (0.01, 0.1, 1.0), distintos valores de `elasticNetParam` (0.0, 0.5, 1.0) y variaciones en `maxIter`. Este enfoque permitió evaluar combinaciones de Ridge (L2), Lasso (L1) y ElasticNet dentro de un marco estructurado y reproducible.
+
+Se ejecutó Grid Search combinado con Cross-Validation (K=3), obteniendo como mejor configuración: `regParam = 1.0`, `elasticNetParam = 1.0` y `maxIter = 50`, con un RMSE en test de **$2,342,402,953.27**. El tiempo de ejecución fue de 18.63 segundos. En paralelo, se implementó Train-Validation Split con `trainRatio = 0.8`, logrando exactamente los mismos hiperparámetros óptimos y el mismo RMSE en test, con un tiempo de ejecución menor (6.66 segundos). Esto evidencia que, para este dataset, ambas estrategias convergieron al mismo mínimo.
+
+Se realizó un refinamiento adicional del grid alrededor de la mejor zona encontrada, probando valores cercanos como `regParam = 0.9` y `elasticNetParam = 0.9`. El nuevo modelo obtuvo un RMSE de **$2,342,402,953.42**, prácticamente igual al anterior, lo que confirma que la región óptima es estable y que no existen mejoras significativas en esa vecindad del espacio de búsqueda.
+
+El modelo óptimo fue guardado en `/opt/spark-data/raw/tuned_model`, junto con los hiperparámetros seleccionados en un archivo JSON para garantizar trazabilidad. Los resultados muestran que el uso de regularización adecuada y validación estructurada permite obtener un modelo robusto, con mejor capacidad de generalización frente a los experimentos iniciales sin ajuste sistemático de hiperparámetros.
 
 
 
