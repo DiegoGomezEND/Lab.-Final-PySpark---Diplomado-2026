@@ -73,3 +73,11 @@ Thumbs.db
 .Trash-0/
 
 notebooks/spark-warehouse/
+
+# Spark outputs / Parquet folders
+data/raw/
+_SUCCESS
+*.crc
+part-*
+*.parquet
+*.parquet/
