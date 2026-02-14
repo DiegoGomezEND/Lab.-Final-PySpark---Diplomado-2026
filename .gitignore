@@ -76,8 +76,8 @@ notebooks/spark-warehouse/
 
 # Spark outputs / Parquet folders
 # data/raw/
-_SUCCESS
-*.crc
-part-*
-*.parquet
+# _SUCCESS
+# *.crc
+# part-*
+# *.parquet
 *.parquet/
