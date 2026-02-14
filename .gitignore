@@ -28,7 +28,7 @@ wheels/
 *.ipynb_checkpoints
 
 # Data files
-data/raw/*.csv
+# data/raw/*.csv
 # data/raw/*.parquet
 data/processed/
 *.log
@@ -75,7 +75,7 @@ Thumbs.db
 notebooks/spark-warehouse/
 
 # Spark outputs / Parquet folders
-data/raw/
+# data/raw/
 _SUCCESS
 *.crc
 part-*

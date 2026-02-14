@@ -1,7 +1,7 @@
 {
-    "regParam": 1.0,
-    "elasticNetParam": 1.0,
+    "regParam": 0.01,
+    "elasticNetParam": 0.0,
     "maxIter": 50,
-    "rmse_test": 2342402953.2731504,
+    "rmse_test": 0.941039660724165,
     "estrategia": "Grid Search + CV"
 }

@@ -603,6 +603,79 @@ Se realizó un refinamiento adicional del grid alrededor de la mejor zona encont
 
 El modelo óptimo fue guardado en `/opt/spark-data/raw/tuned_model`, junto con los hiperparámetros seleccionados en un archivo JSON para garantizar trazabilidad. Los resultados muestran que el uso de regularización adecuada y validación estructurada permite obtener un modelo robusto, con mejor capacidad de generalización frente a los experimentos iniciales sin ajuste sistemático de hiperparámetros.
 
+# **MLOps y Produccion**
+
+## **MLflow Tracking**
+
+En este reto se configuró la conexión con el servidor de MLflow utilizando la URI `http://mlflow:5000`, lo que permitió centralizar el registro de experimentos en un servidor dedicado y no en archivos locales. Se creó el experimento `secop_prediccion`, donde se almacenan todos los runs relacionados con el modelo de predicción de contratos. Esto garantiza trazabilidad, organización y comparabilidad entre diferentes entrenamientos del modelo.
+
+**Registro del Modelo Baseline**
+
+Se entrenó un modelo base de regresión lineal sin regularización (`regParam=0.0`, `elasticNetParam=0.0`) utilizando como variable objetivo el **logaritmo del valor del contrato**, con el fin de estabilizar la varianza y reducir el impacto de valores extremos.
+
+Las métricas obtenidas fueron:
+
+- **RMSE:** 1.45  
+- **MAE:** 0.99  
+- **R²:** 0.3545  
+
+Estas métricas están calculadas en **escala logarítmica**, lo que implica que los errores representan diferencias relativas y no absolutas en pesos colombianos. El modelo fue almacenado como artefacto dentro del run, permitiendo su posterior consulta o descarga desde la interfaz de MLflow.
+
+**Registro de Múltiples Modelos (Ridge, Lasso y ElasticNet)**
+
+Se entrenaron tres modelos adicionales con diferentes tipos de regularización: Ridge (L2), Lasso (L1) y ElasticNet (L1 + L2), todos con `regParam=0.1`. Cada run registró parámetros, métricas (RMSE, MAE y R²) y el modelo entrenado como artefacto.
+
+🔹 **Ridge**
+- **RMSE:** 1.45  
+- **MAE:** 1.00  
+- **R²:** 0.3530  
+
+🔹**Lasso**
+- **RMSE:** 1.49  
+- **MAE:** 1.04  
+- **R²:** 0.3192  
+
+ 🔹 **ElasticNet**
+- **RMSE:** 1.46  
+- **MAE:** 1.02  
+- **R²:** 0.3381  
+
+Se observó que el modelo Ridge obtuvo el mejor desempeño general en términos de RMSE y R², aunque las diferencias entre modelos fueron moderadas.
+
+
+**Exploración y Comparación en MLflow UI**
+
+Se utilizó la interfaz web de MLflow para comparar los runs lado a lado, ordenar por RMSE y analizar las diferencias en parámetros y métricas. Se observó que el modelo Ridge presentó el menor RMSE (≈ 1.45), consolidándose como la mejor alternativa dentro de los experimentos evaluados.
+
+![Comparación de Modelos](../Imagenes/mlflow2.png)
+
+
+## **Registro de Artefactos Personalizados**
+
+Se creó un nuevo run donde, además de registrar el modelo y métricas, se agregó un reporte en texto con los resultados y un gráfico de **predicciones vs valores reales en escala logarítmica**. Este gráfico permitió visualizar el comportamiento del modelo respecto a la línea de predicción perfecta y evidenciar la tendencia del modelo a concentrarse alrededor de la media.
+
+Estos archivos fueron almacenados como artefactos dentro de MLflow, permitiendo su visualización directa desde la interfaz.
+
+![Predicciones vs Valores Reales](../Imagenes/mlflow3.png)
+
+
+## **Model Registry**
+
+El ciclo completo de gestión de modelos utilizando el **Model Registry de MLflow**, con el objetivo de versionar, promover y consumir modelos de forma controlada. Se logro, configurando la conexión al servidor de MLflow y se definió el nombre del modelo como `secop_prediccion_contratos` y se estableció el entorno para registrar versiones oficiales del modelo de predicción del valor de contratos SECOP.
+
+En el primer paso se entrenó y registró la versión 1 (baseline) sin regularización, almacenando métricas y registrándola directamente en el Registry. Luego se entrenó la versión 2 con regularización (ElasticNet), comparando su RMSE frente al baseline. Tras la evaluación, se determinó que la versión 1 presentó un mejor desempeño, por lo que fue promovida a **Production**, mientras que la versión 2 fue archivada. Este proceso permitió aplicar correctamente el ciclo de vida: `None → Staging → Production → Archived`.  
+ 
+![Model_Registry](../Imagenes/mlflow4.png)
+
+Posteriormente se agregó metadata y descripción formal al modelo en producción, incluyendo versión, RMSE validado, dataset utilizado, tipo de features (PCA), autor y fecha. Esto garantiza trazabilidad, documentación técnica y gobernanza del modelo dentro del Registry.  
+ 
+![Model_Registry](../Imagenes/mlflow5.png)
+
+Finalmente, se cargó el modelo directamente desde el Registry utilizando la URI lógica: "models:/secop_prediccion_contratos/Production", se verificó su correcto funcionamiento realizando predicciones sobre el conjunto de prueba. El RMSE obtenido coincidió exactamente con el registrado durante el entrenamiento, confirmando reproducibilidad, control de versiones y correcta gestión del ciclo de vida del modelo.
+
+
+
+
 
 
 
